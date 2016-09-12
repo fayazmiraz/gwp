@@ -1,8 +1,11 @@
 # ignore dev files
+dev/config
 dev/gwp/*
 
 # ignore hub files
+dev/config
 hub/gwp/*
 
 # ignore live files
+dev/config
 live/gwp/*
