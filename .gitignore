@@ -3,9 +3,9 @@ dev/config
 dev/gwp/*
 
 # ignore hub files
-dev/config
+hub/config
 hub/gwp/*
 
 # ignore live files
-dev/config
+live/config
 live/gwp/*
