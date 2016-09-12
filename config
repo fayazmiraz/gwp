@@ -50,11 +50,11 @@ generate_config() {
 [gwp]
     # gwp tamplate name
     name = $( echo "$REPO" )
-    # applied mainly for dev repo, when repo.name is set, this will be set to true
-    repoSet = false
 [repo]
     # (with the exception of hub & live) dev repos may have any name
     name = $( echo "$REPO" )
+    # applied mainly for dev repo, when repo.name is set, this will be set to true
+    custom = false
 CONFIG_CODE
 
     echo "$git_config" > "$SCRIPT_ROOT/$REPO/config"
