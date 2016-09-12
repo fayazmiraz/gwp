@@ -1,0 +1,65 @@
+#!/bin/bash
+
+if [[ -z "$SCRIPT_ROOT" ]]; then
+    SCRIPT_ROOT=$( cd "$(dirname "$0")"; PWD -P )
+fi
+
+assign_var() {
+
+    ######################################
+    # Set HERE DOC string to var
+    # usage: assign_var VAR_NAME HERE_DOC
+    ######################################
+    
+    IFS='' read -r -d '' ${1} || true;
+}
+
+wpdb_alias() {
+
+    #################
+    # set wpdb alias
+    #################
+
+    REPO="$1"
+    if [[ "hub" != "$REPO" ]]; then
+        assign_var git_config << WPDB_CODE
+
+    # command: git wpdb [-e|r]
+    wpdb = "!f() { GIT_ROOT=\$( git rev-parse --show-toplevel ) && "\$GIT_ROOT/.git/gwp/wpdb" "\$@"; }; f"
+WPDB_CODE
+        echo "$git_config"
+    else
+        echo ""
+    fi
+}
+
+generate_config() {
+
+    ############################################
+    # Generate initial git config file for repo
+    # usage: generate_config $REPO_NAME
+    ############################################
+
+    REPO="$1"
+    assign_var git_config << CONFIG_CODE
+[init]
+    templateDir = "$( echo "$SCRIPT_ROOT/$REPO" )"
+[alias]$( wpdb_alias "$REPO" )
+    # update gwp hooks and scripts
+    gwpu = "!f() { tpl=\$(git config --get init.templateDir); if [ ! -f "\$tpl/../update.sh" ]; then echo "Please set init.templateDir, use command like:"; echo "git config init.templateDir PATH_TO_Git_WP_Template"; else "\$tpl/../update.sh" "\$@"; fi }; f"
+[gwp]
+    # gwp tamplate name
+    name = $( echo "$REPO" )
+    # applied mainly for dev repo, when repo.name is set, this will be set to true
+    repoSet = false
+[repo]
+    # (with the exception of hub & live) dev repos may have any name
+    name = $( echo "$REPO" )
+CONFIG_CODE
+
+    echo "$git_config" > "$SCRIPT_ROOT/$REPO/config"
+    if [[ $? -ne 0 ]]; then
+        echo "Error: couldn't generate git config file in path: [$SCRIPT_ROOT/$REPO/config]" 1>&2
+        exit 0
+    fi
+}
