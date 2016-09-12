@@ -6,13 +6,13 @@ UPDATE_OPTIONS="$@"
 # Dir to Local config files
 LOCAL_CONFIG_DIR="gwp.d"
 
-update_hooks() {
+update_files() {
 
     #   ----------------------------------------------------------------------------
     #   copy files from source to destination and make copied files executable
     #   options are similar to cp command
     #   @usage:
-    #   update_hooks -iv src_dir dest_dir [chmode option]
+    #   update_files -iv src_dir dest_dir [chmode option]
     #   
     #   @todo: Currently src_dir, dest_dir param shouldn't have any trailing slash.
     #          Later handle trailing slash within the function.
@@ -57,7 +57,7 @@ update_hooks() {
             fi
             # update all dir except LOCAL_CONFIG_DIR
             if [[ "$LOCAL_CONFIG_DIR" != "$dir_name" ]]; then
-                update_hooks "$resource" "$dest_dir" "$fmod"
+                update_files "$resource" "$dest_dir" "$fmod"
             fi
         fi
     done
