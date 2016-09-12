@@ -1,0 +1,20 @@
+#!/bin/bash
+
+repo_exists() {
+
+    #    ----------------------------------------------------------------
+    #    Function checks if repo exists within Present Working Directory
+    #    ================================================================
+    #    @usage
+    #    if repo_exists; then
+    #       # code
+    #    fi
+    #    ----------------------------------------------------------------
+
+    chk=$( git rev-parse --is-inside-work-tree 2>/dev/null )
+    if [[ "true" == "$chk" ]]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
