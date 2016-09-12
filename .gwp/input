@@ -1,0 +1,19 @@
+#!/bin/bash
+
+input() {
+    #   ----------------------------------------------------------------
+    #   get user input from stdin
+    #   @usage:
+    #   input [message] [DEFAULT]
+    #   ----------------------------------------------------------------
+
+    local msg="$1"
+    local default="$2"
+
+    exec < /dev/tty
+    read -p "$msg" resp
+    if [[ "" == "$resp" ]]; then
+        resp="$default"
+    fi
+    echo "$resp"
+}

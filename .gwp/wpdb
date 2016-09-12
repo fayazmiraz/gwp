@@ -11,6 +11,9 @@
 # ---------------------------------------------------------------
 # @usage:
 # $ [git] wpdb [-d|-D dump-to_file][-r|-R replace-with_file]
+# 
+# @todo: dump DB and replace DB works according to dev, changes
+#        it to work for live (and hub) as well
 #################################################################
 
 # ---- PATH of this file's directory
@@ -22,25 +25,16 @@ PROG_NAME=$( basename $0 )
 # ---- include Configs & Global Variables
 source "${SCRIPT_ROOT}/gwp.conf"
 if [[ $? -ne 0 ]]; then
-    echo " " 1>&2
-    echo "$LINENO: Error in [${SCRIPT_ROOT}/gwp.conf]! Aborting program." 1>&2
-    echo " " 1>&2
-    exit 1
+    error_exit "$LINENO: Error in [${SCRIPT_ROOT}/gwp.conf]! Aborting program."
 fi
 
-# ---- include necessary functions
-source "${SCRIPT_ROOT}/error_exit" &&
-source "${SCRIPT_ROOT}/warn" &&
-source "${SCRIPT_ROOT}/response" &&
+# ---- include DB config extract function
 source "${SCRIPT_ROOT}/extract_wp_db_config"
 if [[ $? -ne 0 ]]; then
-    echo " " 1>&2
-    echo "$LINENO: Failed to include necessary functions! Aborting ${PROG_NAME} program." 1>&2
-    echo " " 1>&2
-    exit 1
+    error_exit "$LINENO: Failed to include necessary functions! Aborting ${PROG_NAME} program."
 fi
 
-# ---- Operations
+# ---- Options
 DUMP_DB="false"
 REPLACE_DB="false"
 DUMP_FILE=""
@@ -81,31 +75,48 @@ if [[ "false" == "$DUMP_DB" && "false" == "$REPLACE_DB" ]]; then
     DUMP_DB="true"
 fi
 
-echo "DUMP_FILE:[$DUMP_FILE]"
-echo "REPLACE_FILE:[$REPLACE_FILE]"
-
 # ---- include DB functions
 if [[ "true" == "$DUMP_DB" ]]; then
     source "${SCRIPT_ROOT}/dump_db"
     if [[ $? -ne 0 ]]; then
         error_exit "$LINENO: Failed to include DUMP DB function! Aborting ${PROG_NAME} program."
     fi
-    # set default DUMP_FILE if not set
+    if [[ -z "$DUMP_FILE" ]]; then
+        DUMP_FILE="$DB_PATH/${REPO_NAME}.sql"
+    else
+        if [[ -d "$DUMP_FILE" ]]; then
+            DUMP_FILE="$DUMP_FILE/${REPO_NAME}.sql"
+        elif [[ ! -f "$DUMP_FILE" ]]; then
+            touch "$DUMP_FILE"
+            if [[ $? -ne 0 ]]; then
+                error_exit "$LINENO: Failed to create DB DUMP file: [$DUMP_FILE]! Aborting ${PROG_NAME} program."
+            fi
+        fi
+    fi
 fi
 if [[ "true" == "$REPLACE_DB" ]]; then
     source "${SCRIPT_ROOT}/replace_db"
     if [[ $? -ne 0 ]]; then
         error_exit "$LINENO: Failed to include REPLACE DB function! Aborting ${PROG_NAME} program."
     fi
-    # set default REPLACE_FILE if not set
+    if [[ -z "$REPLACE_FILE" ]]; then
+        REPLACE_FILE="$DB_PATH/live.sql"
+    elif [[ -d "$REPLACE_FILE" ]]; then
+        REPLACE_FILE="$REPLACE_FILE/live.sql"
+    fi        
+    if [[ ! -f "$REPLACE_FILE" ]]; then
+        error_exit "$LINENO: Failed to recognize DB Replace file: [$REPLACE_FILE]! Aborting ${PROG_NAME} program."
+    fi
 fi
 
 # ---- this is expensive operation, so ask for confirmation
 echo " "
 echo "--------------------------------------"
 echo "You've selected the following options:"
-echo "DUMP DB   : ${DUMP_DB}"
-echo "REPLACE DB: ${REPLACE_DB}"
+echo "DUMP DB      : ${DUMP_DB}"
+echo "DUMP File    : ${DUMP_FILE}"
+echo "REPLACE DB   : ${REPLACE_DB}"
+echo "REPLACE File : ${REPLACE_FILE}"
 echo "--------------------------------------"
 echo " "
 cnt=$( response "Continue?" )
@@ -120,7 +131,16 @@ if [[ -z "$DB_NAME" || -z "$DB_USER" || -z "$DB_PASSWORD" ]]; then
     extract_wp_db_config "$WP_CONFIG"
 fi
 
-# local dev_dump_file="${DB_PATH}/${CUR_REPO}.sql"
-# echo " "
-# echo "**** Dumping ${CUR_REPO} Database to [file=$dev_dump_file]"
-# dump_db "$DB_NAME" "$WP_DB_USER" "$WP_DB_PASS" "$dev_dump_file"
+# ---- DB dump
+if [[ "true" == "$DUMP_DB" ]]; then
+    echo " "
+    echo "**** Dumping DB to [file=$DUMP_FILE]"
+    dump_db "$DB_NAME" "$DB_USER" "$DB_PASSWORD" "$DUMP_FILE"
+fi
+
+# ---- DB replace
+if [[ "true" == "$REPLACE_DB" ]]; then
+    echo " "
+    echo "**** Replacing DB with [file=$REPLACE_FILE]"
+    replace_db "$DB_NAME" "$DB_USER" "$DB_PASSWORD" "$REPLACE_FILE"
+fi

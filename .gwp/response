@@ -24,11 +24,11 @@ response() {
 
     exec < /dev/tty
     while true; do
-        read -p "${msg} " input
-        if [[ "${input}" == "" ]]; then
-            input="${default}"
+        read -p "${msg} " resp
+        if [[ "$resp" == "" ]]; then
+            resp="$default"
         fi
-        case $input in
+        case "$resp" in
             [Yy] )
                 tf="true"
                 break;;
