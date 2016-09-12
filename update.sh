@@ -120,7 +120,7 @@ main()
         fi
     fi
     # copy gwp script files from src_dir to dest_dir and make them executable
-    update_files "$TEMPLATE_PATH/$FUNC_DIR" "$git_dir/$REPO_FUNC_DIR"    
+    update_files "$TEMPLATE_PATH/$REPO_FUNC_DIR" "$git_dir/$REPO_FUNC_DIR"    
 }
 
 
