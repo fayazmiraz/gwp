@@ -1,0 +1,108 @@
+#!/bin/bash
+
+#################################################################
+# Does some operations on the database of WordPress installation
+# Currently supported operations:
+# -d = dump ( default when no other operation is commanded )
+# -r = replace
+# ---------------------------------------------------------------
+# @usage:
+# $ [git] wpdb [-d] [dump-to_file]
+# $ [git] wpdb -d [dump-to_file]
+# $ [git] wpdb -r [replace-with_file]
+# $ [git] wpdb -d [dump-to_file] -r [replace-with_file]
+#################################################################
+
+# ---- PATH of this file's directory
+SCRIPT_ROOT=$( cd "$(dirname "$0")"; PWD -P )
+
+# ---- Program name
+PROG_NAME=$( basename $0 )
+
+# ---- include Configs & Global Variables
+source "${SCRIPT_ROOT}/gwp.conf"
+if [[ $? -ne 0 ]]; then
+    echo " " 1>&2
+    echo "$LINENO: Error in [${SCRIPT_ROOT}/gwp.conf]! Aborting program." 1>&2
+    echo " " 1>&2
+    exit 1
+fi
+
+# ---- include necessary functions
+source "${SCRIPT_ROOT}/error_exit" &&
+source "${SCRIPT_ROOT}/warn" &&
+source "${SCRIPT_ROOT}/response" &&
+source "${SCRIPT_ROOT}/extract_wp_db_config"
+if [[ $? -ne 0 ]]; then
+    echo " " 1>&2
+    echo "$LINENO: Failed to include necessary functions! Aborting ${PROG_NAME} program." 1>&2
+    echo " " 1>&2
+    exit 1
+fi
+
+# ---- Operations
+DUMP_DB="false"
+REPLACE_DB="false"
+
+# ---- get options
+# Reset getopts
+OPTIND=1
+while getopts ":dr" opt; do
+  case $opt in
+    d)
+        DUMP_DB="true"
+        ;;
+    r)
+        REPLACE_DB="true"
+        ;;
+    \?)
+        error_exit "$LINENO: Invalid option: -${OPTARG}"
+        ;;
+  esac
+done
+if [[ "false" == "$DUMP_DB" && "false" == "$REPLACE_DB" ]]; then
+    DUMP_DB="true"
+fi
+
+echo "ops-1:[$1]"
+echo "ops-2:[$2]"
+echo "ops-3:[$3]"
+
+# ---- include DB functions
+if [[ "true" == "$DUMP_DB" ]]; then
+    source "${SCRIPT_ROOT}/dump_db"
+    if [[ $? -ne 0 ]]; then
+        error_exit "$LINENO: Failed to include DUMP DB function! Aborting ${PROG_NAME} program."
+    fi
+fi
+if [[ "true" == "$REPLACE_DB" ]]; then
+    source "${SCRIPT_ROOT}/replace_db"
+    if [[ $? -ne 0 ]]; then
+        error_exit "$LINENO: Failed to include REPLACE DB function! Aborting ${PROG_NAME} program."
+    fi
+fi
+
+# ---- this is expensive operation, so ask for confirmation
+echo " "
+echo "--------------------------------------"
+echo "You've selected the following options:"
+echo "DUMP DB   : ${DUMP_DB}"
+echo "REPLACE DB: ${REPLACE_DB}"
+echo "--------------------------------------"
+echo " "
+cnt=$( response "Continue?" )
+if [[ "false" == "$cnt" ]]; then
+    echo " "
+    echo "You choose not to continue!"
+    echo "Nothing is done this time. Program aborted."
+    exit 0
+fi
+
+if [[ -z "$DB_NAME" || -z "$DB_USER" || -z "$DB_PASSWORD" ]]; then
+    extract_wp_db_config "$WP_CONFIG"
+fi
+
+# local dev_dump_file="${DB_PATH}/${CUR_REPO}.sql"
+# echo " "
+# echo "**** Dumping ${CUR_REPO} Database to [file=$dev_dump_file]"
+# dump_db "$DB_NAME" "$WP_DB_USER" "$WP_DB_PASS" "$dev_dump_file"

@@ -53,7 +53,7 @@ generate_config() {
 [repo]
     # (with the exception of hub & live) dev repos may have any name
     name = $( echo "$REPO" )
-    # applied mainly for dev repo, when repo.name is set, this will be set to true
+    # when repo.name & other custom config is set, this will be set to true
     custom = false
 CONFIG_CODE
 
