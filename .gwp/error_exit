@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if [[ -z "$PROG_NAME" ]]; then
+    PROG_NAME=$(basename $0)
+fi
+
+error_exit() {
+
+    #    ----------------------------------------------------------------
+    #    Function exits with error message
+    #    ================================================================
+    #    @usage
+    #    error_exit ["$LINENO: An error has occurred."] ["$PROG_NAME"]
+    #    ----------------------------------------------------------------
+    
+    local prog_name=$2
+    if [[ -z "$prog_name" ]]; then
+        prog_name="$PROG_NAME"
+    fi
+    echo " " 1>&2
+    echo "****" 1>&2
+    echo "[${prog_name}] ${1:-"Unknown Error"}" 1>&2
+    echo "****" 1>&2
+    echo " " 1>&2
+    exit 1
+}
