@@ -15,17 +15,17 @@ do
     generate_config "$repo"
 
     # copy repo gwp.conf file
-    cp -af "$SCRIPT_ROOT/gwp.conf" "$SCRIPT_ROOT/$repo/$REPO_FUNC_DIR/gwp.conf"
-    if [[ $? -ne 0 ]]; then
-        echo "Error: couldn't copy gwp.conf file in path: [$SCRIPT_ROOT/$repo/$REPO_FUNC_DIR/gwp.conf]" 1>&2
-        exit 0
-    fi
     if [[ ! -d "$SCRIPT_ROOT/$repo/$REPO_FUNC_DIR" ]]; then
         $( cd "$SCRIPT_ROOT/$repo" && mkdir "$REPO_FUNC_DIR" )
         if [[ $? -ne 0 ]]; then
             echo "Error: couldn't create directory: [$REPO_FUNC_DIR] in path: [$SCRIPT_ROOT/$repo/]" 1>&2
             exit 0
         fi
+    fi
+    cp -af "$SCRIPT_ROOT/gwp.conf" "$SCRIPT_ROOT/$repo/$REPO_FUNC_DIR/gwp.conf"
+    if [[ $? -ne 0 ]]; then
+        echo "Error: couldn't copy gwp.conf file in path: [$SCRIPT_ROOT/$repo/$REPO_FUNC_DIR/gwp.conf]" 1>&2
+        exit 0
     fi
 done
 
@@ -43,10 +43,7 @@ do
                 "hub" )
                     cpy="true"; ;;
                 "live" )
-                    case "$file_name" in
-                        "error_exit"|"warn") cpy="true"; ;;
-                    esac
-                    ;;
+                    cpy="true"; ;;
             esac
             if [[ ! -z "$cpy" ]]; then
                 cp -af "$func" "$SCRIPT_ROOT/$repo/$REPO_FUNC_DIR/$file_name"
