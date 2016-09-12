@@ -1,2 +1,2 @@
 # DEV
-Hooks and configs for Dev Template
+Hooks, configs, scripts etc. for Dev Template
