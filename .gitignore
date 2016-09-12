@@ -1,0 +1,8 @@
+# ignore dev files
+dev/gwp/*
+
+# ignore hub files
+hub/gwp/*
+
+# ignore live files
+live/gwp/*
