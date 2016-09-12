@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## @todo: fix, update script doesn't work!!!!!
+
 # @usage:
 # 1. Install:
 #    $ git init --template=[GWP_Template_REPO_Dir]
@@ -15,6 +17,8 @@ PROG_NAME=$(basename $0)
 UPDATE_BASE_PATH=$( cd "$(dirname "$0")"; PWD -P )
 TEMPLATE_PATH=$(git config --get init.templateDir)
 TEMPLATE_NAME=$(git config gwp.name)
+REPO_FUNC_DIR="gwp"
+FUNC_DIR=".${REPO_FUNC_DIR}"
 UPDATE_OPTIONS="$@"
 
 
@@ -44,14 +48,14 @@ if [[ ! -f "${TEMPLATE_PATH}/../update.sh" ]]; then
 fi
 
 
-# ---- @todo Update the template repo with -u option
+# ---- @todo Update the template repo with -u option: $ git gwpu -u
 # $( cd "$UPDATE_BASE_PATH" && git pull 2>/dev/null )
 
 
 # ---- Run the build script
 $( cd "$UPDATE_BASE_PATH" && ./build.sh )
 
-FUNC_DIR=".gwp"
+
 # ---- include necessary functions
 . "${UPDATE_BASE_PATH}/$FUNC_DIR/error_exit" &&
 . "${UPDATE_BASE_PATH}/$FUNC_DIR/warn" &&
@@ -98,11 +102,25 @@ main()
 
     echo " "
 
+    # create hooks dir
+    if [[ ! -d "$git_dir/hooks" ]]; then
+        $( cd "$git_dir" && mkdir "hooks" )
+        if [[ $? -ne 0 ]]; then
+            error_exit "$LINENO: Failed to create hooks directory in [$git_dir]."
+        fi
+    fi
     # copy hook files from src_dir to dest_dir and make them executable
     update_files "$TEMPLATE_PATH/hooks" "$git_dir/hooks"
 
+    # create gwp dir
+    if [[ ! -d "$git_dir/$REPO_FUNC_DIR" ]]; then
+        $( cd "$git_dir" && mkdir "$REPO_FUNC_DIR" )
+        if [[ $? -ne 0 ]]; then
+            error_exit "$LINENO: Failed to create $REPO_FUNC_DIR directory in [$git_dir]."
+        fi
+    fi
     # copy gwp script files from src_dir to dest_dir and make them executable
-    update_files "$TEMPLATE_PATH/gwp" "$git_dir/gwp"    
+    update_files "$TEMPLATE_PATH/$FUNC_DIR" "$git_dir/$REPO_FUNC_DIR"    
 }
 
 
